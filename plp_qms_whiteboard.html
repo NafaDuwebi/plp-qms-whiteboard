@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QMS Audit Whiteboard — PL Projects Ltd</title>
+<style>
+  :root {
+    --plp-maroon: #5C1A2E;
+    --plp-gold: #C8972A;
+    --plp-gold-light: #F0C060;
+    --bg: #F7F5F2;
+    --bg-card: #FFFFFF;
+    --bg-secondary: #F0EDE8;
+    --text-primary: #1A1410;
+    --text-secondary: #6B5E52;
+    --text-muted: #9C8E84;
+    --border: rgba(92,26,46,0.12);
+    --border-strong: rgba(92,26,46,0.22);
+    --green: #2D7A47; --green-bg: #E8F5ED; --green-border: #A8D5B8;
+    --amber: #9A5E0A; --amber-bg: #FDF3E0; --amber-border: #F0C060;
+    --red: #9B2020; --red-bg: #FDEAEA; --red-border: #F0A0A0;
+    --blue: #1A4D8C; --blue-bg: #EAF0FA; --blue-border: #A0BFEA;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 1px 4px rgba(92,26,46,0.08), 0 0 0 0.5px rgba(92,26,46,0.10);
+    --shadow-card: 0 2px 12px rgba(92,26,46,0.10), 0 0 0 0.5px rgba(92,26,46,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; }
+  
+  /* Header */
+  .header { background: var(--plp-maroon); color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-mark { width: 36px; height: 36px; background: var(--plp-gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--plp-maroon); font-family: sans-serif; letter-spacing: -1px; }
+  .header-title { font-size: 17px; font-weight: 400; letter-spacing: 0.01em; }
+  .header-sub { font-size: 11px; opacity: 0.65; margin-top: 1px; font-family: sans-serif; letter-spacing: 0.04em; }
+  .header-right { text-align: right; font-family: sans-serif; }
+  .cert-badge { background: rgba(200,151,42,0.25); border: 1px solid rgba(200,151,42,0.5); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: var(--plp-gold-light); letter-spacing: 0.03em; }
+  .sgs-date { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+
+  /* Nav */
+  .nav { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; gap: 2px; overflow-x: auto; }
+  .nav-btn { padding: 12px 18px; font-size: 12px; font-family: sans-serif; font-weight: 500; letter-spacing: 0.03em; color: var(--text-secondary); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s, border-color .15s; }
+  .nav-btn:hover { color: var(--plp-maroon); }
+  .nav-btn.active { color: var(--plp-maroon); border-bottom-color: var(--plp-gold); }
+
+  /* Main */
+  .main { padding: 24px 28px; max-width: 1200px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Metric row */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+  .metric { background: var(--bg-card); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 16px 18px; }
+  .metric-val { font-size: 28px; font-weight: 400; color: var(--text-primary); line-height: 1; }
+  .metric-label { font-size: 11px; font-family: sans-serif; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 5px; }
+  .metric-val.green { color: var(--green); }
+  .metric-val.amber { color: var(--amber); }
+  .metric-val.red { color: var(--red); }
+
+  /* Progress */
+  .progress-wrap { background: var(--bg-card); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 16px 20px; margin-bottom: 22px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .progress-title { font-size: 12px; font-family: sans-serif; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); }
+  .progress-pct { font-size: 13px; font-family: sans-serif; font-weight: 600; color: var(--plp-maroon); }
+  .progress-track { height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--plp-maroon), var(--plp-gold)); border-radius: 4px; transition: width 0.6s ease; }
+
+  /* Section label */
+  .section-label { font-size: 10px; font-family: sans-serif; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 10px; }
+
+  /* Attention cards */
+  .attention { border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 12px; border: 0.5px solid; }
+  .attention.high { background: var(--red-bg); border-color: var(--red-border); }
+  .attention.medium { background: var(--amber-bg); border-color: var(--amber-border); }
+  .attention.good { background: var(--green-bg); border-color: var(--green-border); }
+  .attention-title { font-size: 13px; font-family: sans-serif; font-weight: 600; margin-bottom: 8px; }
+  .attention.high .attention-title { color: var(--red); }
+  .attention.medium .attention-title { color: var(--amber); }
+  .attention.good .attention-title { color: var(--green); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font-size: 11px; font-family: sans-serif; padding: 3px 10px; border-radius: 20px; }
+  .chip-red { background: #F7C1C1; color: #791F1F; }
+  .chip-amber { background: #F7D99A; color: #633806; }
+  .chip-blue { background: #B8D4F5; color: #0C3F7A; }
+  .chip-green { background: #A8D5B8; color: #1A4A2A; }
+
+  /* Overview list */
+  .stream-head { font-size: 10px; font-family: sans-serif; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); padding: 16px 0 6px; border-bottom: 0.5px solid var(--border); margin-bottom: 6px; }
+  .overview-row { display: grid; grid-template-columns: 28px 1fr auto auto; align-items: center; gap: 10px; padding: 7px 10px; border-radius: var(--radius); cursor: pointer; transition: background .12s; }
+  .overview-row:hover { background: var(--bg-secondary); }
+  .ov-id { font-size: 11px; font-family: sans-serif; font-weight: 600; color: var(--text-muted); }
+  .ov-name { font-size: 13px; color: var(--text-primary); }
+  .ov-owner { font-size: 11px; font-family: sans-serif; color: var(--text-muted); }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+
+  /* Pills */
+  .pill { display: inline-flex; align-items: center; font-size: 11px; font-family: sans-serif; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+  .pill-green { background: var(--green-bg); color: var(--green); }
+  .pill-amber { background: var(--amber-bg); color: var(--amber); }
+  .pill-red { background: var(--red-bg); color: var(--red); }
+  .pill-blue { background: var(--blue-bg); color: var(--blue); }
+  .pill-grey { background: var(--bg-secondary); color: var(--text-secondary); }
+
+  /* Tracker */
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-label { font-size: 11px; font-family: sans-serif; font-weight: 600; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  select { font-size: 12px; font-family: sans-serif; padding: 5px 10px; border-radius: var(--radius); border: 0.5px solid var(--border-strong); background: var(--bg-card); color: var(--text-primary); cursor: pointer; }
+  .tracker-header { display: grid; grid-template-columns: 28px 1fr 120px 110px 90px 80px; gap: 10px; padding: 6px 12px; margin-bottom: 4px; }
+  .tracker-col-head { font-size: 10px; font-family: sans-serif; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
+  .tracker-row { display: grid; grid-template-columns: 28px 1fr 120px 110px 90px 80px; gap: 10px; align-items: center; padding: 8px 12px; border-radius: var(--radius); margin-bottom: 3px; border: 0.5px solid transparent; cursor: pointer; transition: background .12s, border-color .12s; }
+  .tracker-row:hover { background: var(--bg-secondary); border-color: var(--border); }
+  .tr-id { font-size: 11px; font-family: sans-serif; font-weight: 700; color: var(--text-muted); }
+  .tr-name { font-size: 12px; color: var(--text-primary); }
+  .tr-owner { font-size: 11px; font-family: sans-serif; color: var(--text-secondary); }
+  .tr-clause { font-size: 10px; font-family: sans-serif; color: var(--text-muted); font-style: italic; }
+  .tr-score { font-size: 12px; font-family: sans-serif; font-weight: 600; color: var(--text-primary); }
+
+  /* Audit Card */
+  .card-select-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .card-select-wrap label { font-size: 12px; font-family: sans-serif; font-weight: 600; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  .audit-card { background: var(--bg-card); border-radius: var(--radius-lg); border: 0.5px solid var(--border-strong); box-shadow: var(--shadow-card); overflow: hidden; }
+  .ac-top { background: var(--plp-maroon); padding: 20px 24px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .ac-process-id { font-size: 11px; font-family: sans-serif; letter-spacing: 0.06em; color: rgba(255,255,255,0.55); margin-bottom: 4px; }
+  .ac-title { font-size: 18px; color: white; font-weight: 400; line-height: 1.3; }
+  .ac-stream { font-size: 11px; font-family: sans-serif; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  .ac-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .ac-body { padding: 20px 24px; }
+  .ac-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 18px; }
+  .ac-field-label { font-size: 10px; font-family: sans-serif; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+  .ac-field-val { font-size: 13px; color: var(--text-primary); }
+  .ac-divider { border: none; border-top: 0.5px solid var(--border); margin: 0 0 16px; }
+  .ac-section-title { font-size: 10px; font-family: sans-serif; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .ac-gaps { font-size: 13px; color: var(--text-primary); background: var(--bg-secondary); border-radius: var(--radius); padding: 10px 14px; line-height: 1.6; }
+  .ac-risk { font-size: 13px; color: var(--amber); background: var(--amber-bg); border-radius: var(--radius); padding: 10px 14px; border-left: 3px solid var(--plp-gold); line-height: 1.6; margin-top: 10px; }
+
+  /* Actions */
+  .action-header { display: grid; grid-template-columns: 80px 1fr 90px 100px 100px; gap: 10px; padding: 6px 12px; margin-bottom: 4px; }
+  .action-row { display: grid; grid-template-columns: 80px 1fr 90px 100px 100px; gap: 10px; align-items: start; padding: 10px 12px; border-radius: var(--radius); margin-bottom: 4px; border: 0.5px solid var(--border); background: var(--bg-card); cursor: default; transition: box-shadow .12s; }
+  .action-row:hover { box-shadow: var(--shadow); }
+  .action-row.priority-high { border-left: 3px solid var(--red); }
+  .action-row.priority-medium { border-left: 3px solid var(--amber); }
+  .action-row.priority-low { border-left: 3px solid var(--green); }
+  .ar-ref { font-size: 11px; font-family: sans-serif; font-weight: 700; color: var(--plp-maroon); }
+  .ar-issue { font-size: 12px; color: var(--text-primary); line-height: 1.5; }
+  .ar-process { font-size: 10px; font-family: sans-serif; color: var(--text-muted); margin-top: 2px; }
+  .ar-target { font-size: 11px; font-family: sans-serif; }
+  .ar-target.overdue { color: var(--red); font-weight: 700; }
+  .ar-owner { font-size: 11px; font-family: sans-serif; color: var(--text-secondary); }
+
+  /* Flow */
+  .flow-phase { background: var(--bg-card); border-radius: var(--radius-lg); border: 0.5px solid var(--border); margin-bottom: 16px; overflow: hidden; }
+  .flow-phase-header { background: var(--bg-secondary); padding: 12px 18px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .flow-phase-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--plp-maroon); color: var(--plp-gold); display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: sans-serif; font-weight: 700; flex-shrink: 0; }
+  .flow-phase-title { font-size: 13px; font-family: sans-serif; font-weight: 600; color: var(--plp-maroon); }
+  .flow-step { display: flex; align-items: flex-start; gap: 12px; padding: 12px 18px; border-bottom: 0.5px solid var(--border); }
+  .flow-step:last-child { border-bottom: none; }
+  .flow-step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--bg-secondary); border: 0.5px solid var(--border-strong); font-size: 11px; font-family: sans-serif; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .flow-step-title { font-size: 13px; font-family: sans-serif; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+  .flow-step-body { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+  .status-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .legend-item { background: var(--bg-card); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px; }
+  .legend-dot-wrap { flex-shrink: 0; margin-top: 2px; }
+  .legend-title { font-size: 12px; font-family: sans-serif; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .legend-desc { font-size: 11px; font-family: sans-serif; color: var(--text-secondary); line-height: 1.5; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(92,26,46,0.2); border-radius: 3px; }
+
+  @media (max-width: 700px) {
+    .header { padding: 14px 16px; }
+    .main { padding: 16px; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .ac-grid { grid-template-columns: 1fr 1fr; }
+    .tracker-header, .tracker-row { grid-template-columns: 24px 1fr 90px 90px; }
+    .tr-clause, .tr-score { display: none; }
+    .action-header, .action-row { grid-template-columns: 70px 1fr 80px 80px; }
+    .ar-owner { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">PLP</div>
+    <div>
+      <div class="header-title">QMS Audit Whiteboard</div>
+      <div class="header-sub">PL Projects Ltd &nbsp;·&nbsp; ISO 9001:2015</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="cert-badge">Cert valid to Aug 2027</div>
+    <div class="sgs-date">SGS Surveillance · 11 June 2026</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showTab('overview')">Overview</button>
+  <button class="nav-btn" onclick="showTab('tracker')">Process tracker</button>
+  <button class="nav-btn" onclick="showTab('cards')">Audit cards</button>
+  <button class="nav-btn" onclick="showTab('actions')">Action log</button>
+  <button class="nav-btn" onclick="showTab('flow')">Audit flow guide</button>
+</div>
+
+<div class="main">
+
+  <!-- OVERVIEW -->
+  <div id="tab-overview" class="tab-panel active">
+    <div class="metrics">
+      <div class="metric"><div class="metric-val green">7</div><div class="metric-label">Complete</div></div>
+      <div class="metric"><div class="metric-val amber">15</div><div class="metric-label">In progress</div></div>
+      <div class="metric"><div class="metric-val red">3</div><div class="metric-label">Not started</div></div>
+      <div class="metric"><div class="metric-val" style="color:var(--plp-maroon)">10</div><div class="metric-label">High priority actions</div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-title">Overall audit completion (2026 cycle)</span>
+        <span class="progress-pct">28% — 7 of 25 complete</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:28%"></div></div>
+    </div>
+
+    <div class="section-label" style="margin-bottom:12px">Immediate attention required</div>
+    <div class="attention high">
+      <div class="attention-title">Critical — action before 29 May (before SGS)</div>
+      <div class="chips">
+        <span class="chip chip-red">P22 Infrastructure — 5 open NCs, deadline 29 May</span>
+        <span class="chip chip-red">P19 Procurement — 18 NCs, procedure outdated</span>
+        <span class="chip chip-red">P20 Recruit & Develop — not started, no evidence</span>
+        <span class="chip chip-red">P23 Evaluate Performance — not started, no auditor</span>
+        <span class="chip chip-red">P14 Finances — 5 NCs, spreadsheet not updated</span>
+        <span class="chip chip-red">P3 Training Courses — APM advertising NC open since Sep 2024</span>
+      </div>
+    </div>
+    <div class="attention medium">
+      <div class="attention-title">SGS Oct 2025 observations — must show progress on 11 June</div>
+      <div class="chips">
+        <span class="chip chip-amber">Climate change risks not in QMS (Cl. 6.1)</span>
+        <span class="chip chip-amber">Quality objectives not measurably linked (Cl. 6.2)</span>
+        <span class="chip chip-amber">Management review lacks trend data (Cl. 9.3)</span>
+        <span class="chip chip-amber">QMS awareness training not evidenced (Cl. 7.3)</span>
+      </div>
+    </div>
+    <div class="attention good">
+      <div class="attention-title">Complete — scores need entering in Audit Overview Report</div>
+      <div class="chips">
+        <span class="chip chip-green">P15 Insurances 100%</span>
+        <span class="chip chip-green">P17 Accreditations 100%</span>
+        <span class="chip chip-green">P18 Operate QMS 100%</span>
+        <span class="chip chip-green">P21 Doc Information 100%</span>
+        <span class="chip chip-green">P24 Internal Audits 100%</span>
+        <span class="chip chip-green">P25 Improvement 100%</span>
+        <span class="chip chip-blue">P22 50% — NCs open</span>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:24px">All 25 processes at a glance</div>
+    <div id="overview-list"></div>
+  </div>
+
+  <!-- TRACKER -->
+  <div id="tab-tracker" class="tab-panel">
+    <div class="filters">
+      <span class="filter-label">Filter:</span>
+      <select id="f-stream" onchange="renderTracker()">
+        <option value="all">All streams</option>
+        <option value="Deliver">Deliver Business</option>
+        <option value="Support">Support Business</option>
+      </select>
+      <select id="f-status" onchange="renderTracker()">
+        <option value="all">All statuses</option>
+        <option value="Complete">Complete</option>
+        <option value="In Progress">In progress</option>
+        <option value="Not Started">Not started</option>
+      </select>
+      <select id="f-priority" onchange="renderTracker()">
+        <option value="all">All priorities</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div class="tracker-header">
+      <span class="tracker-col-head">#</span>
+      <span class="tracker-col-head">Process</span>
+      <span class="tracker-col-head">Owner</span>
+      <span class="tracker-col-head">Status</span>
+      <span class="tracker-col-head">Clause</span>
+      <span class="tracker-col-head">Priority</span>
+    </div>
+    <div id="tracker-list"></div>
+  </div>
+
+  <!-- CARDS -->
+  <div id="tab-cards" class="tab-panel">
+    <div class="card-select-wrap">
+      <label>Select process:</label>
+      <select id="card-select" onchange="renderCard()" style="font-size:13px;padding:7px 12px;min-width:320px"></select>
+    </div>
+    <div id="card-display"></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div id="tab-actions" class="tab-panel">
+    <div class="filters">
+      <span class="filter-label">Filter:</span>
+      <select id="fa-priority" onchange="renderActions()">
+        <option value="all">All priorities</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <select id="fa-status" onchange="renderActions()">
+        <option value="all">All statuses</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In progress</option>
+        <option value="Not Started">Not started</option>
+      </select>
+    </div>
+    <div class="action-header">
+      <span class="tracker-col-head">Ref</span>
+      <span class="tracker-col-head">Issue / action</span>
+      <span class="tracker-col-head">Priority</span>
+      <span class="tracker-col-head">Status</span>
+      <span class="tracker-col-head">Target / owner</span>
+    </div>
+    <div id="action-list"></div>
+  </div>
+
+  <!-- FLOW -->
+  <div id="tab-flow" class="tab-panel">
+    <div class="flow-phase">
+      <div class="flow-phase-header">
+        <div class="flow-phase-icon">A</div>
+        <div class="flow-phase-title">Before the audit — preparation</div>
+      </div>
+      <div class="flow-step"><div class="flow-step-num">1</div><div><div class="flow-step-title">Open Process Tracker and filter by High priority + Not Started</div><div class="flow-step-body">These are your preparation focus. Identify which process owners need to be briefed and which auditors need to be assigned before the session.</div></div></div>
+      <div class="flow-step"><div class="flow-step-num">2</div><div><div class="flow-step-title">Open the Audit Card for each process you will cover</div><div class="flow-step-body">Review the required evidence list, ISO clause, key risk and current gaps. Print or screenshot the card to use in the audit session itself.</div></div></div>
+      <div class="flow-step"><div class="flow-step-num">3</div><div><div class="flow-step-title">Check the Action Log — filter by Open + High priority</div><div class="flow-step-body">Any actions from previous audits or SGS observations must be addressed. Confirm with owners that evidence of completion is on SharePoint before the session.</div></div></div>
+      <div class="flow-step"><div class="flow-step-num">4</div><div><div class="flow-step-title">Set process status to In Progress</div><div class="flow-step-body">Update the process status as soon as active preparation begins. This keeps the Overview accurate and signals readiness to the Quality Manager.</div></div></div>
+    </div>
+    <div class="flow-phase">
+      <div class="flow-phase-header">
+        <div class="flow-phase-icon">B</div>
+        <div class="flow-phase-title">During the audit — live use</div>
+      </div>
+      <div class="flow-step"><div class="flow-step-num">5</div><div><div class="flow-step-title">Use the Audit Card as your live checklist</div><div class="flow-step-body">Work through required evidence row by row with the process owner. Note findings against each item — what is available, what is missing, and any improvements to raise.</div></div></div>
+      <div class="flow-step"><div class="flow-step-num">6</div><div><div class="flow-step-title">Log non-conformities and improvements immediately</div><div class="flow-step-body">Add any NC or improvement to the Action Log before leaving the session. Assign a reference number, owner and target date. Do not rely on notes — log in real time.</div></div></div>
+      <div class="flow-step"><div class="flow-step-num">7</div><div><div class="flow-step-title">Update process status at the end of the session</div><div class="flow-step-body">If the audit report is signed off and no NCs are outstanding, mark Complete. If NCs remain open, leave as In Progress. Never mark Complete with open actions.</div></div></div>
+    </div>
+    <div class="flow-phase">
+      <div class="flow-phase-header">
+        <div class="flow-phase-icon">C</div>
+        <div class="flow-phase-title">After the audit — close out</div>
+      </div>
+      <div class="flow-step"><div class="flow-step-num">8</div><div><div class="flow-step-title">Populate the Audit Overview Report</div><div class="flow-step-body">Enter the conformity score, NC count and improvement count for the completed audit. This is currently missing for 7 completed processes — this must be done before the SGS visit on 11 June.</div></div></div>
+      <div class="flow-step"><div class="flow-step-num">9</div><div><div class="flow-step-title">Update the Active Improvement Log on SharePoint</div><div class="flow-step-body">All NCs and improvements must be entered on the Improvement Log with owner, priority and deadline. The Log is currently dated Sep 2023 and needs re-versioning to v4.0.</div></div></div>
+      <div class="flow-step"><div class="flow-step-num">10</div><div><div class="flow-step-title">Monitor the Action Log weekly until SGS</div><div class="flow-step-body">Filter by Open and check for overdue items (shown in red). Chase action owners. Close actions only when evidence of completion is confirmed and uploaded to SharePoint.</div></div></div>
+    </div>
+    <div class="section-label" style="margin-top:24px;margin-bottom:12px">Status system — apply consistently across all 25 processes</div>
+    <div class="status-legend">
+      <div class="legend-item"><div class="legend-dot-wrap"><span class="status-dot" style="background:#2D7A47"></span></div><div><div class="legend-title">Complete</div><div class="legend-desc">Audit report signed off, all NCs closed, conformity score entered in Audit Overview Report</div></div></div>
+      <div class="legend-item"><div class="legend-dot-wrap"><span class="status-dot" style="background:#9A5E0A"></span></div><div><div class="legend-title">In progress</div><div class="legend-desc">Audit underway, or complete with open NCs or actions not yet closed out</div></div></div>
+      <div class="legend-item"><div class="legend-dot-wrap"><span class="status-dot" style="background:#9B2020"></span></div><div><div class="legend-title">Not started</div><div class="legend-desc">No audit activity — no date set, no report prepared, no auditor assigned</div></div></div>
+      <div class="legend-item"><div class="legend-dot-wrap"><span class="status-dot" style="background:#1A4D8C"></span></div><div><div class="legend-title">Complete with open NCs</div><div class="legend-desc">Audit done and scored but one or more non-conformities remain open on the Action Log</div></div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const P=[
+  {id:1,name:'Understand Markets and Customers',stream:'Deliver',owner:'Andy Pochin',clause:'4.2',status:'In Progress',evidence:'Partial',priority:'High',score:'—',risk:'Market data not formally retained; interested parties register not provided in doc set',gaps:'Formal context document (Cl. 4.1/4.2) not yet in uploaded evidence; climate change NC open',auditor:'Mark L'},
+  {id:2,name:'Develop Business Strategy and Plans',stream:'Deliver',owner:'Josie Rothera',clause:'4.2, 6.2, 8.1, 9.3',status:'In Progress',evidence:'Partial',priority:'High',score:'—',risk:'Quality objectives not clearly linked to policy; strategic objectives spreadsheet not provided',gaps:'SGS Oct 2025 observation: objectives need measurable alignment with quality policy',auditor:'Dan C'},
+  {id:3,name:'Create and Maintain Training Courses',stream:'Deliver',owner:'Josie Rothera',clause:'8.3',status:'In Progress',evidence:'Partial',priority:'High',score:'—',risk:'APM website advertising NC not formally closed',gaps:'NC open: courses not advertised on APM website (step 5.2.1). Audit template incomplete at step 5.1.2',auditor:'Andy P'},
+  {id:4,name:'Market Services',stream:'Deliver',owner:'TBC',clause:'8.1 / 8.6',status:'In Progress',evidence:'Partial',priority:'High',score:'—',risk:'Owner and auditor both TBC; clause mapping queried',gaps:'No owner confirmed in 2026 cycle. Clause 8.6 vs 8.1 mapping needs resolution',auditor:'TBC'},
+  {id:5,name:'Receive Training Enquiry & Establish Requirements',stream:'Deliver',owner:'Josie Rothera',clause:'8.1, 8.2',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'CRM accuracy dependent on staff discipline; historical document naming issues',gaps:'2026 audit report prepared/distributed but not yet completed',auditor:'Saad Khan'},
+  {id:6,name:'Receive Consultancy Enquiry & Establish Requirements',stream:'Deliver',owner:'Dan Cascarina',clause:'8.1, 8.2',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'CRM record completeness; all consultancy opportunities must be logged even if lost',gaps:'2026 audit report prepared but not distributed. CRM improvement from Jun 2024 not verified',auditor:'Nafa Duwebi'},
+  {id:7,name:'Research and Present Course Options',stream:'Deliver',owner:'Josie Rothera',clause:'8.3',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'Proposal sign-off and amendment tracking; CRM linkage',gaps:'2026 audit report prepared/distributed but not yet completed',auditor:'Saad Khan'},
+  {id:8,name:'Design and Produce Bespoke Training Course',stream:'Deliver',owner:'Josie Rothera',clause:'8.3, 8.6',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'Version control on bespoke materials; sign-off evidence not always retained',gaps:'NCs from Oct 2024: no evidence new material recorded on form; existing docs lack version control',auditor:'Saad Khan'},
+  {id:9,name:'Research and Present Consultancy Options',stream:'Deliver',owner:'Nathan Spooner',clause:'8.3',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'CRM update completeness; resource utilisation tracker accuracy',gaps:'2026 report prepared but not distributed. CRM improvement actions from Nov 2024 to be verified',auditor:'Nafa Duwebi'},
+  {id:10,name:'Deliver Training Course',stream:'Deliver',owner:'Josie Rothera',clause:'8.1',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'Check sheet completion discipline; date recording; evaluation evidence in AQD',gaps:'NC Oct 2024: date not recorded on check sheets. 2026 report distributed but not complete',auditor:'Saad Khan'},
+  {id:11,name:'Review Delivery of Training Course',stream:'Deliver',owner:'Josie Rothera',clause:'5.1.2, 8.2',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'Training Director sign-off step may not reflect current practice',gaps:'Improvement from 2024: step 5.3.1 wording to be reviewed. 2026 audit not yet complete',auditor:'Saad Khan'},
+  {id:12,name:'Deliver Consultancy and Review Progress',stream:'Deliver',owner:'Dan Cascarina',clause:'8.1',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'Client Service Form not consistently updated by Account Managers',gaps:'NC Nov 2024: Client Service Form on SharePoint not always updated. 2026 audit not complete',auditor:'Joe B'},
+  {id:13,name:'Review Delivery of Consultancy',stream:'Deliver',owner:'Dan Cascarina',clause:'5.1.2, 8.2',status:'In Progress',evidence:'Partial',priority:'Medium',score:'—',risk:'Post-contract review completion; case study creation discipline',gaps:'2026 audit report prepared/distributed but not yet complete',auditor:'Joe B'},
+  {id:14,name:'Manage Finances',stream:'Support',owner:'Andy Pochin',clause:'—',status:'In Progress',evidence:'Partial',priority:'High',score:'—',risk:'Finance spreadsheet not updated; Xero data not transferred to SharePoint',gaps:'5 NCs from Jan 2026 audit. 2026 audit report prepared but not complete',auditor:'Emma H'},
+  {id:15,name:'Manage Insurances',stream:'Support',owner:'Nafa Duwebi',clause:'—',status:'Complete',evidence:'Available',priority:'Low',score:'100%',risk:'Terminology consistency (SMT vs MT) to be confirmed',gaps:'Minor wording update noted. 0 NCs in 2026 audit',auditor:'Saad Khan'},
+  {id:16,name:'Manage Health, Safety and Environment',stream:'Support',owner:'Andy Pochin / Nafa Duwebi',clause:'7.1',status:'In Progress',evidence:'Partial',priority:'High',score:'—',risk:'No auditor assigned in 2026 cycle; DSE evidence for remote workers',gaps:'2026 audit has no auditor named. Risk assessments and remote working evidence not confirmed',auditor:'Saad Khan'},
+  {id:17,name:'Achieve and Maintain Accreditations',stream:'Support',owner:'Nafa Duwebi',clause:'—',status:'Complete',evidence:'Available',priority:'Low',score:'100%',risk:'APM accreditation maintenance; logo usage compliance',gaps:'0 NCs in 2026. SGS logo misuse resolved in 2024',auditor:'Saad Khan'},
+  {id:18,name:'Operate Quality Management System',stream:'Support',owner:'Nafa Duwebi',clause:'4.3, 4.4, 5.2, 5.3, 6.2, 7.3',status:'Complete',evidence:'Available',priority:'Low',score:'100%',risk:'Director resource assignment for QMS activities; awareness training evidence',gaps:'NC from 2024 closed. Awareness training session underway Nov 2025',auditor:'Saad Khan'},
+  {id:19,name:'Manage Procurement and Suppliers',stream:'Support',owner:'Andy Pochin',clause:'8.4, 10.2',status:'Not Started',evidence:'Partial',priority:'High',score:'—',risk:'Procedure significantly outdated (18 NCs in 2025 audit)',gaps:'Highest NC count of any process in 2025. No 2026 date or report. Procedure review required',auditor:'TBC'},
+  {id:20,name:'Recruit and Develop People',stream:'Support',owner:'Jess B',clause:'7.1, 7.2',status:'Not Started',evidence:'Missing',priority:'High',score:'—',risk:'Training records and competence matrices not provided',gaps:'Audit not started; no date set. Competence evidence absent from uploaded documents',auditor:'TBC'},
+  {id:21,name:'Manage Documented Information',stream:'Support',owner:'Nafa Duwebi',clause:'7.5',status:'Complete',evidence:'Available',priority:'Low',score:'100%',risk:'Document retention period (5 vs 10 yr); Director approval confirmation',gaps:'0 NCs, 1 improvement in 2026. All 2024/25 NCs closed',auditor:'Saad Khan'},
+  {id:22,name:'Manage Infrastructure and Environment',stream:'Support',owner:'Nafa Duwebi',clause:'7.1',status:'Complete',evidence:'Partial',priority:'High',score:'50%',risk:'5 open NCs from Apr 2026: remote working, venue verification, equipment checks',gaps:'50% conformity score. 5 NCs open — deadline 29 May 2026. Evidence exists but not uploaded to QMS',auditor:'Saad Khan'},
+  {id:23,name:'Evaluate Business Performance',stream:'Support',owner:'Josie Rothera',clause:'4.2, 5.1.2, 9.1, 9.3, 10.2',status:'Not Started',evidence:'Partial',priority:'High',score:'—',risk:'Management review not covering all Cl. 9.3.2 inputs; customer satisfaction data not provided',gaps:'SGS Oct 2025 obs: management review not fully effective. No auditor named for 2026',auditor:'TBC'},
+  {id:24,name:'Conduct Internal Quality Audits',stream:'Support',owner:'Nafa Duwebi',clause:'9.2, 10.2',status:'Complete',evidence:'Available',priority:'Low',score:'100%',risk:'Audit scores not yet populated in Audit Overview Report for 7 completed audits',gaps:'0 NCs in 2026. Conformity scores missing from Overview Report for completed cycle audits',auditor:'Saad Khan'},
+  {id:25,name:'Manage Improvement',stream:'Support',owner:'Nafa Duwebi',clause:'5.1, 6.3, 10.1, 10.2, 10.3',status:'Complete',evidence:'Available',priority:'Low',score:'100%',risk:'4 open improvement items; Improvement Log not re-versioned since Sep 2023',gaps:'0 NCs in 2026. Log v3.0 dated Sep 2023 contains Apr 2026 entries — needs re-versioning to v4.0',auditor:'Saad Khan'},
+];
+
+const A=[
+  {ref:'ACT-001',process:'All / Cl. 6.1',issue:'Climate change risks not formally considered in QMS context',priority:'High',status:'Open',target:'2026-03-31',owner:'Marina W / Nafa D'},
+  {ref:'ACT-002',process:'P2 / Cl. 6.2',issue:'Quality objectives need measurable alignment with quality policy',priority:'High',status:'Open',target:'2026-03-31',owner:'Josie R / Andy P'},
+  {ref:'ACT-003',process:'P23 / Cl. 9.3',issue:'Management review lacks trend data and full Cl. 9.3.2 coverage',priority:'High',status:'In Progress',target:'2026-03-31',owner:'Emma H / Andy P'},
+  {ref:'ACT-004',process:'P18 / Cl. 7.3',issue:'QMS awareness training not demonstrably evidenced',priority:'High',status:'In Progress',target:'2026-03-31',owner:'Nafa D / Anuradha J'},
+  {ref:'ACT-005',process:'P22',issue:'5 open NCs: remote working env, client equipment, venue evidence not in QMS',priority:'High',status:'Open',target:'2026-05-29',owner:'Nafa Duwebi'},
+  {ref:'ACT-006',process:'P19',issue:'18 NCs from Jan 2026: procedure outdated, Approved Supplier Log not maintained',priority:'High',status:'Open',target:'2026-07-31',owner:'Andy P / Nafa D'},
+  {ref:'ACT-007',process:'P20',issue:'2026 audit not started; no date set; competence records absent from QMS',priority:'High',status:'Not Started',target:'2026-07-31',owner:'Jess B / Saad K'},
+  {ref:'ACT-008',process:'P23',issue:'2026 audit not started; management review evidence not on SharePoint',priority:'High',status:'Not Started',target:'2026-07-31',owner:'Josie Rothera'},
+  {ref:'ACT-009',process:'P3',issue:'NC open since Sep 2024: courses not advertised on APM website (step 5.2.1)',priority:'High',status:'Open',target:'2026-06-30',owner:'Josie R / Nafa D'},
+  {ref:'ACT-010',process:'P14',issue:'5 NCs from Jan 2026: Finance spreadsheet not updated, Xero data not on SharePoint',priority:'High',status:'Open',target:'2026-07-31',owner:'Andy P / Nafa D'},
+  {ref:'ACT-011',process:'P4',issue:'Process owner and auditor TBC; ISO clause mapping 8.6 vs 8.1 unresolved',priority:'Medium',status:'Open',target:'2026-06-30',owner:'Quality Manager'},
+  {ref:'ACT-012',process:'All (2026 cycle)',issue:'18 of 25 audits not complete; scores blank for 7 completed audits in Overview Report',priority:'Medium',status:'In Progress',target:'2026-07-31',owner:'Nafa Duwebi'},
+  {ref:'ACT-013',process:'P25',issue:'Improvement Log v3.0 dated Sep 2023 contains Apr 2026 entries — not re-versioned',priority:'Low',status:'Open',target:'2026-06-30',owner:'Quality Manager'},
+  {ref:'ACT-014',process:'P24',issue:'Conformity scores blank for 7 completed 2026 audits in Audit Overview Report',priority:'Medium',status:'Open',target:'2026-06-30',owner:'Nafa Duwebi'},
+  {ref:'ACT-015',process:'ISO Req Log',issue:'Incorrect clause mappings: P24 mapped to Cl. 8.7 (should be 9.2); P4 mapped to Cl. 8.6 (queried)',priority:'Low',status:'Open',target:'2026-06-30',owner:'Quality Manager'},
+  {ref:'ACT-016',process:'All processes',issue:'SMT vs Management Team naming inconsistency across QMS documents',priority:'Low',status:'Open',target:'2026-09-30',owner:'Quality Manager'},
+  {ref:'ACT-017',process:'P14',issue:'Overdue improvement item: apprenticeship procedures in Process Architecture (due Dec 2024)',priority:'Low',status:'Open',target:'2026-06-30',owner:'QM / Josie R'},
+  {ref:'ACT-018',process:'P1 / Cl. 4.1',issue:'Context of the organisation document (Cl. 4.1/4.2) not in uploaded QMS evidence',priority:'Medium',status:'Open',target:'2026-06-30',owner:'Quality Manager'},
+  {ref:'ACT-019',process:'All / Cl. 7.2',issue:'Competence records and training matrix not present in uploaded QMS documents',priority:'Medium',status:'Open',target:'2026-07-31',owner:'Anuradha J / QM'},
+];
+
+function statusPill(s){
+  if(s==='Complete') return '<span class="pill pill-green">Complete</span>';
+  if(s==='In Progress') return '<span class="pill pill-amber">In progress</span>';
+  if(s==='Not Started') return '<span class="pill pill-red">Not started</span>';
+  return '<span class="pill pill-blue">'+s+'</span>';
+}
+function priorityPill(p){
+  if(p==='High') return '<span class="pill pill-red">High</span>';
+  if(p==='Medium') return '<span class="pill pill-amber">Medium</span>';
+  return '<span class="pill pill-grey">Low</span>';
+}
+function evidencePill(e){
+  if(e==='Available') return '<span class="pill pill-green">Available</span>';
+  if(e==='Partial') return '<span class="pill pill-amber">Partial</span>';
+  return '<span class="pill pill-red">Missing</span>';
+}
+function dotColor(s){
+  if(s==='Complete') return '#2D7A47';
+  if(s==='Not Started') return '#9B2020';
+  return '#9A5E0A';
+}
+
+function renderOverview(){
+  const el=document.getElementById('overview-list');
+  const streams=[...new Set(P.map(p=>p.stream))];
+  let h='';
+  streams.forEach(s=>{
+    h+=`<div class="stream-head">${s} business</div>`;
+    P.filter(p=>p.stream===s).forEach(p=>{
+      h+=`<div class="overview-row" onclick="goCard(${p.id})">
+        <span class="ov-id">${p.id}</span>
+        <span class="ov-name"><span class="status-dot" style="background:${dotColor(p.status)};margin-right:8px"></span>${p.name}</span>
+        <span class="ov-owner">${p.owner.split('/')[0].trim()}</span>
+        ${statusPill(p.status)}
+      </div>`;
+    });
+  });
+  el.innerHTML=h;
+}
+
+function renderTracker(){
+  const sf=document.getElementById('f-stream').value;
+  const stf=document.getElementById('f-status').value;
+  const pf=document.getElementById('f-priority').value;
+  const list=P.filter(p=>(sf==='all'||p.stream===sf)&&(stf==='all'||p.status===stf)&&(pf==='all'||p.priority===pf));
+  let curr='';let h='';
+  list.forEach(p=>{
+    if(p.stream!==curr){curr=p.stream;h+=`<div class="stream-head">${curr} business</div>`;}
+    h+=`<div class="tracker-row" onclick="goCard(${p.id})">
+      <span class="tr-id">${p.id}</span>
+      <div><div class="tr-name">${p.name}</div></div>
+      <span class="tr-owner">${p.owner.split('/')[0].trim().split(' ')[0]}</span>
+      ${statusPill(p.status)}
+      <span class="tr-clause">${p.clause||'—'}</span>
+      ${priorityPill(p.priority)}
+    </div>`;
+  });
+  document.getElementById('tracker-list').innerHTML=h||'<div style="font-size:13px;color:var(--text-muted);padding:16px 0">No processes match the selected filters.</div>';
+}
+
+function populateCardSelect(){
+  const sel=document.getElementById('card-select');
+  P.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.id+'. '+p.name;sel.appendChild(o);});
+  renderCard();
+}
+
+function renderCard(){
+  const id=parseInt(document.getElementById('card-select').value);
+  const p=P.find(x=>x.id===id);if(!p)return;
+  document.getElementById('card-display').innerHTML=`
+    <div class="audit-card">
+      <div class="ac-top">
+        <div>
+          <div class="ac-process-id">Process ${p.id} &nbsp;·&nbsp; ${p.stream} Business</div>
+          <div class="ac-title">${p.name}</div>
+          <div class="ac-stream">ISO 9001 clause(s): ${p.clause||'—'}</div>
+        </div>
+        <div class="ac-badges">${statusPill(p.status)}${evidencePill(p.evidence)}</div>
+      </div>
+      <div class="ac-body">
+        <div class="ac-grid">
+          <div><div class="ac-field-label">Process owner</div><div class="ac-field-val">${p.owner}</div></div>
+          <div><div class="ac-field-label">2026 auditor</div><div class="ac-field-val">${p.auditor}</div></div>
+          <div><div class="ac-field-label">2026 score</div><div class="ac-field-val">${p.score==='100%'?'<span class="pill pill-green">100%</span>':p.score==='50%'?'<span class="pill pill-amber">50%</span>':'<span class="pill pill-grey">Pending</span>'}</div></div>
+          <div><div class="ac-field-label">Priority</div><div class="ac-field-val">${priorityPill(p.priority)}</div></div>
+          <div><div class="ac-field-label">Evidence</div><div class="ac-field-val">${evidencePill(p.evidence)}</div></div>
+          <div><div class="ac-field-label">Status</div><div class="ac-field-val">${statusPill(p.status)}</div></div>
+        </div>
+        <hr class="ac-divider">
+        <div class="ac-section-title">Current gaps</div>
+        <div class="ac-gaps">${p.gaps}</div>
+        <div class="ac-section-title" style="margin-top:14px">Key risk</div>
+        <div class="ac-risk">${p.risk}</div>
+      </div>
+    </div>`;
+}
+
+function goCard(id){
+  showTab('cards');
+  document.getElementById('card-select').value=id;
+  renderCard();
+}
+
+function renderActions(){
+  const pf=document.getElementById('fa-priority').value;
+  const sf=document.getElementById('fa-status').value;
+  const list=A.filter(a=>(pf==='all'||a.priority===pf)&&(sf==='all'||a.status===sf));
+  const today=new Date('2026-05-02');
+  let h='';
+  list.forEach(a=>{
+    const due=new Date(a.target);
+    const ov=due<today&&a.status!=='Closed';
+    h+=`<div class="action-row priority-${a.priority.toLowerCase()}">
+      <div><div class="ar-ref">${a.ref}</div></div>
+      <div><div class="ar-issue">${a.issue}</div><div class="ar-process">${a.process}</div></div>
+      ${priorityPill(a.priority)}
+      ${statusPill(a.status)}
+      <div><div class="ar-target${ov?' overdue':''}">${a.target}${ov?' ⚑':''}</div><div class="ar-owner">${a.owner}</div></div>
+    </div>`;
+  });
+  document.getElementById('action-list').innerHTML=h||'<div style="font-size:13px;color:var(--text-muted);padding:16px 0">No actions match the selected filters.</div>';
+}
+
+function showTab(t){
+  document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(btn=>btn.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  const tabs=['overview','tracker','cards','actions','flow'];
+  document.querySelectorAll('.nav-btn')[tabs.indexOf(t)].classList.add('active');
+}
+
+renderOverview();
+renderTracker();
+populateCardSelect();
+renderActions();
+</script>
+</body>
+</html>
